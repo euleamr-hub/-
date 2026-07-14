@@ -182,6 +182,7 @@
 
             <div class="opt-controls">
                 <button class="opt-btn opt-btn-primary" id="opt-btn-start">🚀 ابدأ التركيز</button>
+                <button class="opt-btn opt-btn-danger" id="opt-btn-end" style="background:#f2dede; color: var(--danger); box-shadow: 0 4px 0 rgba(231,76,60,0.15);">⏹️ إنهاء الجولة</button>
             </div>
 
             
@@ -319,6 +320,7 @@
 
     var timeString = $('opt-time-string'), timerStatus = $('opt-timer-status');
     var btnStart = $('opt-btn-start');
+    var btnEnd = $('opt-btn-end');
     var charBubble = $('opt-char-bubble'), towerFloorsEl = $('opt-tower-floors');
     var statHeight = $('opt-stat-height'), statHours = $('opt-stat-hours');
     var statPopulation = $('opt-stat-population'), currentCycleView = $('opt-current-cycle-view');
@@ -570,6 +572,12 @@
             arrangeWorkersPosition(isWorkMode ? 'opt-working' : 'opt-resting');
             if (!timer) { timer = setInterval(step, 1000); }
         }
+    });
+
+    btnEnd.addEventListener('click', function () {
+        clearInterval(timer); timer = null; isRunning = false;
+        stopAllAmbient();
+        resetTimer();
     });
 
     renderTower();
