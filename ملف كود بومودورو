@@ -1,0 +1,580 @@
+<style>
+    .opt-widget, .opt-widget * { box-sizing: border-box; transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .opt-widget {
+        --primary: #5c3c55; --bg-light: #f4f3f6; --white: #FFFFFF; --text-dark: #231621;
+        --accent: #8e5c83; --success: #27ae60; --danger: #e74c3c; --gold: #f39c12;
+        --window-blue: #a5ebf2; --skin: #ffd5b4; --tower-b1: #5c3c55; --tower-b2: #8e5c83;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-light);
+        color: var(--text-dark); display: flex; min-height: auto; padding: 12px; border-radius: 20px; position: relative; direction: rtl;
+    }
+    
+    /* جعل العناصر تترتب بجانب بعضها بشكل مثالي وبأبعاد ثابتة تناسب شاشات اللاب توب */
+    .opt-container { max-width: 950px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
+    
+    @media (min-width: 768px) {
+        .opt-container {
+            grid-template-columns: 1.15fr 0.85fr;
+            height: 520px; /* ارتفاع مدمج ومثالي ليعرض الأداة كاملة على اللاب توب بدون Scroll */
+        }
+        .opt-panel, .opt-world-panel {
+            height: 100%;
+            overflow: hidden;
+        }
+    }
+
+    .opt-panel { background: var(--white); border-radius: 20px; padding: 15px; box-shadow: 0 10px 25px rgba(92, 60, 85, 0.05); display: flex; flex-direction: column; justify-content: space-between; gap: 10px; border: 1px solid rgba(92, 60, 85, 0.04); }
+    .opt-panel h1 { color: var(--primary); font-size: 19px; text-align: center; margin: 0; font-weight: 800; }
+    
+    /* شبكة الإدخال المضغوطة الأنيقة ذات الخط الواضح */
+    .opt-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+    .opt-form-group { display: flex; flex-direction: column; gap: 4px; }
+    .opt-form-group label { font-size: 13px; font-weight: 700; color: var(--primary); opacity: 0.85; }
+    .opt-form-group input { padding: 6px 10px; border: 2px solid rgba(92, 60, 85, 0.08); background: var(--bg-light); color: var(--text-dark); border-radius: 10px; outline: none; font-size: 14px; font-weight: bold; text-align: center; }
+    .opt-form-group input:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(92, 60, 85, 0.1); }
+    
+    .opt-timer-display { text-align: center; margin: 2px 0; background: linear-gradient(135deg, rgba(92, 60, 85, 0.02), rgba(142, 92, 131, 0.02)); padding: 8px; border-radius: 16px; border: 1px solid rgba(92, 60, 85, 0.03); }
+    .opt-status-badge { display: inline-block; padding: 4px 12px; border-radius: 50px; background: rgba(92, 60, 85, 0.08); color: var(--primary); font-weight: 800; margin-bottom: 4px; font-size: 12px; }
+    
+    /* تصميم الوقت وحركته التفاعلية */
+    .opt-time { font-size: 46px; font-weight: 900; color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1; }
+    .opt-time.opt-pulsing { animation: opt-timerPulse 1s infinite alternate; }
+    @keyframes opt-timerPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.03); opacity: 0.85; } }
+
+    /* 🎨 أزرار تحكم 3D زجاجية متطورة وفائقة الأناقة وواضحة الخط */
+    .opt-controls { display: flex; gap: 8px; justify-content: center; }
+    .opt-btn { 
+        padding: 9px 18px; border: none; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; 
+        box-shadow: 0 4px 0 rgba(0,0,0,0.15), 0 6px 12px rgba(92, 60, 85, 0.1); position: relative; top: 0;
+        display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%;
+    }
+    .opt-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .opt-btn:active { top: 3px; box-shadow: 0 1px 0 rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05); }
+    .opt-btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; }
+    
+    /* 🎧 أزرار مسارات التركيز الأنيقة جداً */
+    .opt-ambient-sounds { background: var(--bg-light); padding: 8px; border-radius: 14px; text-align: center; border: 1px dashed rgba(92, 60, 85, 0.12); }
+    .opt-sound-btns-container { display: flex; gap: 6px; justify-content: center; margin-top: 6px; width: 100%; }
+    .opt-sound-btn { 
+        background: var(--white); border: 2px solid rgba(92, 60, 85, 0.05); padding: 6px 8px; border-radius: 10px; 
+        cursor: pointer; font-size: 12px; font-weight: 800; color: var(--primary); flex: 1; 
+        text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .opt-sound-btn:hover { background: rgba(92, 60, 85, 0.04); transform: translateY(-1px); }
+    .opt-sound-btn.opt-active { 
+        background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-color: var(--primary); 
+        box-shadow: 0 4px 10px rgba(92, 60, 85, 0.2);
+    }
+
+    .opt-roadmap { border-top: 1px dashed #ddd; padding-top: 6px; }
+    .opt-roadmap-title { font-size: 12px; font-weight: bold; margin-bottom: 4px; color: var(--accent); }
+    .opt-road-item { font-size: 11px; color: #666; margin-bottom: 2px; display: flex; justify-content: space-between; }
+    .opt-road-item.opt-done { color: var(--success); font-weight: bold; }
+    
+    /* لوحة عرض العالم والبرج */
+    .opt-world-panel { background: linear-gradient(to bottom, var(--bg-light), var(--white)); border-radius: 20px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(92, 60, 85, 0.04); border: 1px solid rgba(92, 60, 85, 0.03); }
+    .opt-stats { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; background: var(--white); padding: 8px; border-radius: 12px; z-index: 10; border: 1px solid rgba(0,0,0,0.02); }
+    .opt-stat-box { text-align: center; }
+    .opt-stat-val { font-weight: bold; color: var(--primary); font-size: 15px; }
+    .opt-stat-lbl { font-size: 11px; color: #777; }
+    
+    .opt-character-bubble { background: var(--white); color: var(--text-dark); padding: 6px 10px; border-radius: 12px; margin-bottom: 3px; max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.03); font-size: 12px; text-align: center; z-index: 10; animation: opt-float 3s ease-in-out infinite; border: 1px solid rgba(92, 60, 85, 0.04); }
+    
+    .opt-stage { position: relative; width: 100%; max-width: 260px; height: 210px; display: flex; flex-direction: column-reverse; align-items: center; border-bottom: 4px solid #bdc3c7; margin: 0 auto; }
+    .opt-tower-base { width: 180px; height: 10px; background: #50374b; border-radius: 4px; z-index: 2; }
+    .opt-tower-floors { display: flex; flex-direction: column-reverse; align-items: center; width: 130px; max-height: 130px; overflow-y: auto; scrollbar-width: none; position: relative; scroll-behavior: smooth; z-index: 2; margin-bottom: 6px; }
+    .opt-tower-floors::-webkit-scrollbar { display: none; }
+    .opt-floor { width: 95px; height: 40px; background: linear-gradient(135deg, var(--tower-b1), var(--tower-b2)); border: 2px solid var(--white); border-bottom: none; border-radius: 6px 6px 0 0; animation: opt-dropIn 0.5s ease-out forwards; position: relative; flex-shrink: 0; display: flex; justify-content: space-around; align-items: center; padding: 0 6px; }
+    .opt-window { width: 20px; height: 24px; background: var(--window-blue); border: 2px solid var(--white); border-radius: 5px 5px 2px 2px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+    .opt-resident-avatar { width: 10px; height: 10px; background: #e74c3c; border-radius: 50% 50% 0 0; }
+    .opt-floor.opt-style-modern { background: linear-gradient(135deg, #2c3e50, #3498db); border-color: #ecf0f1; border-radius: 0px; }
+    .opt-floor.opt-style-future { background: linear-gradient(135deg, #1e272e, #05c46b); border-color: #0be881; box-shadow: 0 0 10px rgba(11, 232, 129, 0.5); }
+    
+    .opt-ladder { position: absolute; width: 12px; background: linear-gradient(to top, #8a5229 20%, transparent 20%); background-size: 100% 8px; border-left: 2px solid #8a5229; border-right: 2px solid #8a5229; bottom: 6px; display: none; z-index: 1; transition: height 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
+    #opt-ladder-1 { right: 22%; } #opt-ladder-2 { right: 67%; } #opt-ladder-3 { right: 46%; }
+    
+    .opt-character { width: 32px; height: 48px; position: absolute; bottom: 6px; z-index: 5; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), right 0.4s ease; }
+    #opt-worker-1 { right: 19%; } #opt-worker-2 { right: 69%; display: none; } #opt-worker-3 { right: 44%; display: none; }
+    .opt-char-head { width: 20px; height: 20px; background: var(--skin); border-radius: 50%; position: absolute; top: 8px; left: 6px; z-index: 3; }
+    .opt-char-helmet { width: 24px; height: 10px; background: var(--gold); border-radius: 40px 40px 0 0; position: absolute; top: 1px; left: 4px; z-index: 4; }
+    .opt-char-body { width: 26px; height: 22px; background: #2980b9; border-radius: 6px 6px 3px 3px; position: absolute; bottom: 0; left: 3px; z-index: 2; }
+    .opt-char-arm-tool { width: 10px; height: 10px; background: #2980b9; position: absolute; top: 22px; border-radius: 50px; transform-origin: top center; z-index: 4; display: none; }
+    #opt-worker-1 .opt-char-arm-tool { left: -4px; } #opt-worker-2 .opt-char-arm-tool { right: -4px; } #opt-worker-3 .opt-char-arm-tool { left: 10px; }
+    .opt-hammer-head { width: 10px; height: 6px; background: #7f8c8d; position: absolute; bottom: -3px; left: -2px; border-radius: 2px; }
+    
+    #opt-worker-2 .opt-char-head::after { content: ''; position: absolute; top: 5px; left: 2px; width: 16px; height: 4px; background: rgba(52, 152, 219, 0.8); border: 1px solid #fff; border-radius: 3px; z-index: 5; }
+    #opt-worker-2 .opt-char-body { background: #e67e22; border-top: 3px solid #f1c40f; }
+    #opt-worker-3 .opt-char-head::after { content: ''; position: absolute; bottom: -2px; left: 2px; width: 16px; height: 8px; background: #fff; border-radius: 0 0 8px 8px; z-index: 4; }
+    #opt-worker-3 .opt-char-body::before { content: '👔'; position: absolute; top: 1px; left: 6px; font-size: 7px; z-index: 5; }
+    
+    .opt-dizzy-stars { position: absolute; top: -10px; left: 3px; font-size: 10px; display: none; animation: opt-spin 1s linear infinite; }
+    .opt-character.opt-working .opt-char-arm-tool { display: block; animation: opt-proHammerHit 0.15s linear infinite alternate; }
+    .opt-character.opt-dizzy { animation: opt-shake 0.15s infinite; }
+    .opt-character.opt-dizzy .opt-dizzy-stars { display: block; }
+    .opt-character.opt-resting { animation: opt-yogaFloat 3s ease-in-out infinite; }
+    .opt-character.opt-resting .opt-char-body { background: #8e44ad; }
+    .opt-character.opt-resting .opt-char-helmet { display: none; }
+    .opt-spark { position: absolute; width: 3px; height: 3px; background: var(--gold); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 6; }
+    
+    @keyframes opt-spin { 100% { transform: rotate(360deg); } }
+    @keyframes opt-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
+    @keyframes opt-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    @keyframes opt-dropIn { 0% { transform: translateY(-15px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    @keyframes opt-proHammerHit { 0% { transform: rotate(0deg); } 100% { transform: rotate(-60deg); } }
+    @keyframes opt-yogaFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes opt-sparkExplode { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-15px) scale(0); opacity: 0; } }
+    
+    /* النوافذ المنبثقة التفاعلية */
+    .opt-celebration-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: var(--white); border: 4px solid var(--gold); padding: 18px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); z-index: 1000; text-align: center; max-width: 320px; width: 90%; display: none; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: var(--text-dark); }
+    .opt-celebration-popup.opt-active { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .opt-celebration-popup h2 { color: var(--primary); margin-bottom: 6px; font-size: 17px; font-weight: 800; }
+    .opt-celebration-popup p { font-size: 13px; margin-bottom: 12px; line-height: 1.4; font-weight: 600; }
+    .opt-celebration-popup .opt-avatar-preview { font-size: 28px; margin: 4px 0; }
+    .opt-celebration-popup .opt-btn-close { background: var(--primary); color: #fff; padding: 6px 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15); }
+</style>
+
+<div class="opt-widget" dir="rtl" lang="ar">
+    
+    <div class="opt-celebration-popup" id="opt-celebration-box">
+        <h2 id="opt-celeb-title">🎉 انضمام عضو جديد للورشة!</h2>
+        <div class="opt-avatar-preview" id="opt-celeb-avatar">👷‍♂️</div>
+        <p id="opt-celeb-desc">مرحباً بالعامل الجديد الذي انضم لمساعدتك بفضل جهودك ودراستك المستمرة!</p>
+        <button class="opt-btn-close" id="opt-celeb-close">رائع، لنكمل البناء! 🚀</button>
+    </div>
+
+    
+    <div class="opt-celebration-popup" id="opt-confirm-box" style="border-color: var(--primary); z-index: 1001;">
+        <h2 id="opt-confirm-title">تأكيد الانتقال 🔔</h2>
+        <div class="opt-avatar-preview" id="opt-confirm-emoji">🔔</div>
+        <p id="opt-confirm-desc">هل أنت جاهز لبدء الخطوة التالية؟</p>
+        <div style="display:flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap;">
+            <button class="opt-btn opt-btn-primary" id="opt-confirm-yes" style="min-width: 90px; font-size: 13px; padding: 8px 12px;">نعم، ابدأ الآن 🚀</button>
+            <button class="opt-btn opt-btn-danger" id="opt-confirm-no" style="min-width: 90px; font-size: 13px; padding: 8px 12px; background: #f2dede; color: var(--danger); box-shadow: 0 4px 0 rgba(231,76,60,0.15);">إنهاء الجلسة ❌</button>
+        </div>
+    </div>
+
+    <div class="opt-container">
+        
+        <div class="opt-panel">
+            <h1>مؤقت البرج المعماري السكني</h1>
+            <div class="opt-settings-grid">
+                <div class="opt-form-group">
+                    <label>جولات الدراسة</label>
+                    <input type="number" id="opt-input-cycles" value="4" min="1">
+                </div>
+                <div class="opt-form-group">
+                    <label>وقت التركيز (دقائق)</label>
+                    <input type="number" id="opt-input-work" value="25" min="1">
+                </div>
+                <div class="opt-form-group">
+                    <label>وقت الراحة (دقائق)</label>
+                    <input type="number" id="opt-input-break" value="5" min="1">
+                </div>
+                <div class="opt-form-group">
+                    <label>الدورة الحالية</label>
+                    <input type="text" id="opt-current-cycle-view" value="1 / 4" disabled="" style="background:rgba(0,0,0,0.03); text-align:center; font-weight:bold; border:none; color: var(--primary);">
+                </div>
+            </div>
+
+            <div class="opt-timer-display">
+                <span class="opt-status-badge" id="opt-timer-status">جاهز للمهمة</span>
+                <div class="opt-time" id="opt-time-string">25:00</div>
+            </div>
+
+            <div class="opt-controls">
+                <button class="opt-btn opt-btn-primary" id="opt-btn-start">🚀 ابدأ التركيز</button>
+            </div>
+
+            
+            <div class="opt-ambient-sounds">
+                <p style="font-size: 12px; font-weight: 800; margin: 0 0 2px 0; color: var(--primary); text-align: center;">🎧 موسيقى التركيز (تتكرر تلقائياً):</p>
+                <div class="opt-sound-btns-container">
+                    <button class="opt-sound-btn" id="opt-btn-birds">🐦 أصوات غابة</button>
+                    <button class="opt-sound-btn" id="opt-btn-rain">🌧️ صوت مطر</button>
+                    <button class="opt-sound-btn" id="opt-btn-noise">💤 ضوضاء بيضاء</button>
+                </div>
+            </div>
+
+            <div class="opt-roadmap">
+                <div class="opt-roadmap-title">🏆 خطة التطور المعماري:</div>
+                <div class="opt-road-item" id="opt-road-style-2"><span>🏢 البرج الزجاجي المطور</span> <span>عند 30 متر</span></div>
+                <div class="opt-road-item" id="opt-road-style-3"><span>⚡ ناطحة السحاب المستقبلية</span> <span>عند 90 متر</span></div>
+                <div class="opt-road-item" id="opt-road-worker-2"><span>🥽 المهندس "صابر"</span> <span>عند 100 متر</span></div>
+                <div class="opt-road-item" id="opt-road-worker-3"><span>👔 كبير المهندسين "حكيم"</span> <span>عند 1000 متر</span></div>
+            </div>
+        </div>
+
+        
+        <div class="opt-world-panel">
+            <div class="opt-stats">
+                <div class="opt-stat-box"><div class="opt-stat-val" id="opt-stat-height">0 م</div><div class="opt-stat-lbl">الارتفاع</div></div>
+                <div class="opt-stat-box"><div class="opt-stat-val" id="opt-stat-population" style="color: var(--success);">0 سكان</div><div class="opt-stat-lbl">السكان</div></div>
+                <div class="opt-stat-box"><div class="opt-stat-val" id="opt-stat-hours">0 د</div><div class="opt-stat-lbl">الدقائق</div></div>
+            </div>
+
+            <div class="opt-character-bubble" id="opt-char-bubble">أهلاً بك! ابدأ جولة التركيز لنبني معاً!</div>
+
+            <div class="opt-stage">
+                <div class="opt-tower-base"></div>
+                <div class="opt-tower-floors" id="opt-tower-floors"></div>
+                <div class="opt-ladder" id="opt-ladder-1"></div>
+                <div class="opt-ladder" id="opt-ladder-2"></div>
+                <div class="opt-ladder" id="opt-ladder-3"></div>
+
+                <div class="opt-character opt-idle" id="opt-worker-1">
+                    <div class="opt-dizzy-stars">💫⭐</div><div class="opt-char-helmet"></div><div class="opt-char-head"></div><div class="opt-char-body"></div>
+                    <div class="opt-char-arm-tool"><div class="opt-hammer-head"></div></div>
+                </div>
+                <div class="opt-character opt-idle" id="opt-worker-2">
+                    <div class="opt-dizzy-stars">💫⭐</div><div class="opt-char-helmet" style="background:#e67e22;"></div><div class="opt-char-head"></div><div class="opt-char-body"></div>
+                    <div class="opt-char-arm-tool"><div class="opt-hammer-head"></div></div>
+                </div>
+                <div class="opt-character opt-idle" id="opt-worker-3">
+                    <div class="opt-dizzy-stars">💫⭐</div><div class="opt-char-helmet" style="background:#e74c3c;"></div><div class="opt-char-head"></div><div class="opt-char-body"></div>
+                    <div class="opt-char-arm-tool"><div class="opt-hammer-head"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.opt-widget');
+    if (!root || root.dataset.optInitialized === 'true') { return; } 
+    root.dataset.optInitialized = 'true';
+
+    var $ = function (id) { return root.querySelector('#' + id); };
+
+    // ==========================================
+    // ⚙️ نظام تخزين محلي ذكي لتجنب انهيار الـ Iframes والـ Private Browsing
+    // ==========================================
+    var safeStorage = {
+        getItem: function (key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        },
+        setItem: function (key, val) {
+            try { localStorage.setItem(key, val); return true; } catch (e) { return false; }
+        }
+    };
+
+    var soundUrls = {
+        alarm: "https://cdn.jsdelivr.net/gh/euleamr-hub/-/%D9%85%D9%86%D8%A8%D9%87.mp3",       
+        defeat: "https://cdn.jsdelivr.net/gh/euleamr-hub/-/%D9%87%D8%B2%D9%8A%D9%85%D8%A9.mp3",   
+        birds: "https://cdn.jsdelivr.net/gh/euleamr-hub/-/Bird%20Sounds%20Spectacular%20Morning%20Bird%20Sound.mp3",
+        rain: "https://cdn.jsdelivr.net/gh/euleamr-hub/-/rain%20sound.mp3",
+        noise: "https://cdn.jsdelivr.net/gh/euleamr-hub/-/White%20Noise.mp3"
+    };
+
+    var soundAlarm = new Audio(soundUrls.alarm);
+    var soundDefeat = new Audio(soundUrls.defeat);
+
+    var ambientSounds = {
+        birds: new Audio(soundUrls.birds),
+        rain: new Audio(soundUrls.rain),
+        noise: new Audio(soundUrls.noise)
+    };
+
+    for (var key in ambientSounds) {
+        ambientSounds[key].loop = true;
+    }
+
+    var activeAmbientKey = null;      
+    var savedAmbientKeyForResume = null; 
+
+    function playAmbient(key) {
+        for (var k in ambientSounds) {
+            if (k !== key || activeAmbientKey === key) {
+                ambientSounds[k].pause();
+                $('opt-btn-' + k).classList.remove('opt-active');
+            }
+        }
+
+        if (activeAmbientKey === key) {
+            activeAmbientKey = null;
+        } else {
+            ambientSounds[key].play().catch(function(e) {
+                console.log("المتصفح يطلب تفاعل المستخدم أولاً لتشغيل الصوت");
+            });
+            $('opt-btn-' + key).classList.add('opt-active');
+            activeAmbientKey = key;
+        }
+    }
+
+    function stopAllAmbient() {
+        for (var k in ambientSounds) {
+            ambientSounds[k].pause();
+            $('opt-btn-' + k).classList.remove('opt-active');
+        }
+        activeAmbientKey = null;
+    }
+
+    var timer = null, isRunning = false, isWorkMode = true, currentCycle = 1, totalCycles = 4, timeLeft = 25 * 60;
+    var totalFocusMinutes = parseInt(safeStorage.getItem('opt_totalFocusMinutes')) || 0;
+    var towerFloorsCount = parseInt(safeStorage.getItem('opt_towerFloorsCount')) || 0;
+
+    var unlockedWorker2 = safeStorage.getItem('opt_unlockedWorker2') === 'true';
+    var unlockedWorker3 = safeStorage.getItem('opt_unlockedWorker3') === 'true';
+
+    var timeString = $('opt-time-string'), timerStatus = $('opt-timer-status');
+    var btnStart = $('opt-btn-start');
+    var charBubble = $('opt-char-bubble'), towerFloorsEl = $('opt-tower-floors');
+    var statHeight = $('opt-stat-height'), statHours = $('opt-stat-hours');
+    var statPopulation = $('opt-stat-population'), currentCycleView = $('opt-current-cycle-view');
+    var inputCycles = $('opt-input-cycles'), inputWork = $('opt-input-work'), inputBreak = $('opt-input-break');
+
+    var pendingTransition = null; 
+
+    function resetTimerValues() {
+        if (isRunning) { return; } 
+        totalCycles = parseInt(inputCycles.value) || 4;
+        var minutes = isWorkMode ? (parseInt(inputWork.value) || 25) : (parseInt(inputBreak.value) || 5);
+        timeLeft = minutes * 60;
+        updateTimerView();
+        currentCycleView.value = currentCycle + ' / ' + totalCycles;
+    }
+
+    function updateTimerView() {
+        var mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        var secs = (timeLeft % 60).toString().padStart(2, '0');
+        timeString.innerText = mins + ':' + secs;
+    }
+
+    function updateStatsDisplays() {
+        var currentHeight = towerFloorsCount * 3;
+        statHeight.innerText = currentHeight + ' م';
+        statHours.innerText = totalFocusMinutes + ' د';
+        statPopulation.innerText = (towerFloorsCount * 2) + ' سكان';
+        currentCycleView.value = currentCycle + ' / ' + totalCycles;
+
+        $('opt-worker-2').style.display = currentHeight >= 100 ? 'block' : 'none';
+        $('opt-worker-3').style.display = currentHeight >= 1000 ? 'block' : 'none';
+
+        toggleRoadmapItem('opt-road-style-2', currentHeight >= 30);
+        toggleRoadmapItem('opt-road-style-3', currentHeight >= 90);
+        toggleRoadmapItem('opt-road-worker-2', currentHeight >= 100);
+        toggleRoadmapItem('opt-road-worker-3', currentHeight >= 1000);
+
+        if (currentHeight >= 100 && !unlockedWorker2) {
+            triggerCelebration("🥽 انضمام المهندس صابر!", "نجحت في الوصول لـ 100 متر! انضم إليك المهندس 'صابر'، ليوجه البناء بكفاءة أعلى!");
+            unlockedWorker2 = true; safeStorage.setItem('opt_unlockedWorker2', 'true');
+        }
+        if (currentHeight >= 1000 && !unlockedWorker3) {
+            triggerCelebration("👔 انضمام كبير المهندسين حكيم!", "إنجاز أسطوري! وصلت إلى 1000 متر! انضم إليكم كبير المهندسين 'حكيم' ليدير تشييد ناطحات السحاب!");
+            unlockedWorker3 = true; safeStorage.setItem('opt_unlockedWorker3', 'true');
+        }
+    }
+
+    function toggleRoadmapItem(id, isDone) {
+        var el = $(id);
+        if (isDone) { el.classList.add('opt-done'); } else { el.classList.remove('opt-done'); }
+    }
+
+    function renderTower() {
+        towerFloorsEl.innerHTML = '';
+        for (var i = 0; i < towerFloorsCount; i++) {
+            var floor = document.createElement('div'); floor.className = 'opt-floor';
+            if (i * 3 >= 90) { floor.classList.add('opt-style-future'); }
+            else if (i * 3 >= 30) { floor.classList.add('opt-style-modern'); }
+
+            var win1 = document.createElement('div'); win1.className = 'opt-window';
+            var av1 = document.createElement('div'); av1.className = 'opt-resident-avatar'; win1.appendChild(av1);
+            var win2 = document.createElement('div'); win2.className = 'opt-window';
+            var av2 = document.createElement('div'); av2.className = 'opt-resident-avatar'; win2.appendChild(av2);
+            floor.appendChild(win1); floor.appendChild(win2); towerFloorsEl.appendChild(floor);
+        }
+    }
+
+    function arrangeWorkersPosition(state) {
+        var currentHeight = towerFloorsCount * 3;
+        var workers = [$('opt-worker-1'), $('opt-worker-2'), $('opt-worker-3')];
+        var ladders = [$('opt-ladder-1'), $('opt-ladder-2'), $('opt-ladder-3')];
+        var targetHeight = Math.min(towerFloorsCount * 40, 100);
+
+        workers.forEach(function (w) { w.className = 'opt-character ' + state; });
+
+        if (state === 'opt-working') {
+            ladders[0].style.display = 'block'; ladders[0].style.height = targetHeight + 'px';
+            if (currentHeight >= 100) { ladders[1].style.display = 'block'; ladders[1].style.height = targetHeight + 'px'; }
+            if (currentHeight >= 1000) { ladders[2].style.display = 'block'; ladders[2].style.height = targetHeight + 'px'; }
+            workers.forEach(function (w) { w.style.bottom = (targetHeight + 6) + 'px'; });
+            charBubble.innerText = "نحن نعمل بجد فوق السلالم لنبني أعلى جدار في البرج!";
+            setTimeout(function () { towerFloorsEl.scrollTop = towerFloorsEl.scrollHeight; }, 150);
+        } else if (state === 'opt-dizzy') {
+            ladders.forEach(function (l) { l.style.height = '0px'; setTimeout(function () { l.style.display = 'none'; }, 400); });
+            workers.forEach(function (w) { w.style.bottom = '6px'; });
+            charBubble.innerText = "آااخ! سقطنا على الأرض ودارت النجوم حول رؤوسنا! 😵‍💫";
+            setTimeout(function () { towerFloorsEl.scrollTop = 0; }, 150);
+        } else if (state === 'opt-resting') {
+            ladders[0].style.display = 'block'; ladders[0].style.height = targetHeight + 'px';
+            if (currentHeight >= 100) { ladders[1].style.display = 'block'; ladders[1].style.height = targetHeight + 'px'; }
+            if (currentHeight >= 1000) { ladders[2].style.display = 'block'; ladders[2].style.height = targetHeight + 'px'; }
+            workers.forEach(function (w) { w.style.bottom = (targetHeight + 10) + 'px'; });
+            charBubble.innerText = "فترة الاستراحة الهادئة فوق قمة البرج السكني..";
+        } else {
+            ladders.forEach(function (l) { l.style.height = '0px'; l.style.display = 'none'; });
+            workers.forEach(function (w) { w.style.bottom = '6px'; });
+            charBubble.innerText = "الورشة بانتظار بدء الجلسة لنبدأ العمل.";
+        }
+    }
+
+    function createSparkEffect() {
+        if (!isRunning || !isWorkMode) { return; }
+        var currentHeight = towerFloorsCount * 3;
+        var activeWorkers = [$('opt-worker-1')];
+        if (currentHeight >= 100) { activeWorkers.push($('opt-worker-2')); }
+        if (currentHeight >= 1000) { activeWorkers.push($('opt-worker-3')); }
+
+        var stage = root.querySelector('.opt-stage');
+        activeWorkers.forEach(function (worker) {
+            var spark = document.createElement('div'); spark.className = 'opt-spark';
+            var charRect = worker.getBoundingClientRect(); var stageRect = stage.getBoundingClientRect();
+            spark.style.left = (charRect.left - stageRect.left + 10) + 'px';
+            spark.style.bottom = (stageRect.bottom - charRect.top - 18) + 'px';
+            spark.style.animation = 'opt-sparkExplode 0.3s ease-out forwards';
+            stage.appendChild(spark);
+            setTimeout(function () { spark.remove(); }, 300);
+        });
+    }
+
+    function step() {
+        if (!isRunning) { return; }
+
+        if (timeLeft > 0) {
+            timeLeft--; updateTimerView();
+        } else {
+            clearInterval(timer); timer = null; isRunning = false;
+            soundAlarm.play().catch(function(e){});
+            timeString.classList.remove('opt-pulsing');
+
+            if (isWorkMode) {
+                savedAmbientKeyForResume = activeAmbientKey;
+                stopAllAmbient();
+
+                totalFocusMinutes += parseInt(inputWork.value) || 25;
+                towerFloorsCount++;
+                safeStorage.setItem('opt_totalFocusMinutes', totalFocusMinutes);
+                safeStorage.setItem('opt_towerFloorsCount', towerFloorsCount);
+                renderTower();
+                updateStatsDisplays();
+
+                if (currentCycle >= totalCycles) {
+                    triggerCelebration("🏆 نهاية النوبة بنجاح!", "عمل أسطوري! أكملت جميع جولات الدراسة وبنيت مجتمعاً رائعاً!");
+                    resetTimer(); return;
+                }
+
+                showConfirmPopup(
+                    "🎉 جولة دراسة ممتازة!",
+                    "انتهت الجولة وحان وقت الاستراحة الهادئة. هل تريد تشغيل وقت الراحة والبدء الآن؟ ☕",
+                    "☕",
+                    function() { 
+                        isWorkMode = false;
+                        timerStatus.innerText = "فترة الراحة ☕";
+                        arrangeWorkersPosition('opt-resting');
+                        var minutes = parseInt(inputBreak.value) || 5;
+                        timeLeft = minutes * 60;
+                        updateTimerView();
+                        isRunning = true;
+                        timeString.classList.add('opt-pulsing');
+                        btnStart.innerText = "⏸️ إيقاف مؤقت";
+                        timer = setInterval(step, 1000);
+                    }
+                );
+
+            } else {
+                showConfirmPopup(
+                    "⏳ انتهت الاستراحة!",
+                    "العمال مستعدون للعودة للبناء والدراسة. هل أنت جاهز لبدء دورة تركيز جديدة؟ 📚",
+                    "📚",
+                    function() { 
+                        isWorkMode = true;
+                        currentCycle++;
+                        timerStatus.innerText = "فترة الدراسة 📚";
+                        arrangeWorkersPosition('opt-working');
+                        
+                        if (savedAmbientKeyForResume) {
+                            playAmbient(savedAmbientKeyForResume);
+                            savedAmbientKeyForResume = null;
+                        }
+
+                        var minutes = parseInt(inputWork.value) || 25;
+                        timeLeft = minutes * 60;
+                        updateTimerView();
+                        isRunning = true;
+                        timeString.classList.add('opt-pulsing');
+                        btnStart.innerText = "⏸️ إيقاف مؤقت";
+                        timer = setInterval(step, 1000);
+                    }
+                );
+            }
+            btnStart.innerText = "🚀 ابدأ التركيز";
+        }
+    }
+
+    function showConfirmPopup(title, desc, emoji, onYesCallback) {
+        $('opt-confirm-title').innerText = title;
+        $('opt-confirm-desc').innerText = desc;
+        $('opt-confirm-emoji').innerText = emoji;
+        $('opt-confirm-box').classList.add('opt-active');
+        pendingTransition = onYesCallback;
+    }
+
+    $('opt-confirm-yes').addEventListener('click', function() {
+        $('opt-confirm-box').classList.remove('opt-active');
+        if (pendingTransition) {
+            pendingTransition();
+            pendingTransition = null;
+        }
+    });
+
+    $('opt-confirm-no').addEventListener('click', function() {
+        $('opt-confirm-box').classList.remove('opt-active');
+        pendingTransition = null;
+        resetTimer();
+    });
+
+    function triggerCelebration(title, desc) {
+        $('opt-celeb-title').innerText = title;
+        $('opt-celeb-desc').innerText = desc;
+        $('opt-celebration-box').classList.add('opt-active');
+    }
+    function closeCelebration() { $('opt-celebration-box').classList.remove('opt-active'); }
+
+    function resetTimer() {
+        isRunning = false; clearInterval(timer); timer = null;
+        isWorkMode = true; currentCycle = 1;
+        btnStart.innerText = "🚀 ابدأ التركيز"; timerStatus.innerText = "جاهز للمهمة";
+        timeString.classList.remove('opt-pulsing');
+        arrangeWorkersPosition('opt-idle'); resetTimerValues(); updateStatsDisplays(); renderTower();
+    }
+
+    $('opt-btn-birds').addEventListener('click', function () { playAmbient('birds'); });
+    $('opt-btn-rain').addEventListener('click', function () { playAmbient('rain'); });
+    $('opt-btn-noise').addEventListener('click', function () { playAmbient('noise'); });
+
+    $('opt-celeb-close').addEventListener('click', closeCelebration);
+    [inputCycles, inputWork, inputBreak].forEach(function (el) { el.addEventListener('input', resetTimerValues); });
+
+    btnStart.addEventListener('click', function () {
+        if (isRunning) {
+            isRunning = false; btnStart.innerText = "🚀 ابدأ التركيز";
+            clearInterval(timer); timer = null;
+            timeString.classList.remove('opt-pulsing');
+            
+            soundDefeat.play().catch(function(e){});
+            arrangeWorkersPosition('opt-dizzy');
+        } else {
+            isRunning = true; btnStart.innerText = "⏸️ إيقاف مؤقت";
+            timeString.classList.add('opt-pulsing');
+            arrangeWorkersPosition(isWorkMode ? 'opt-working' : 'opt-resting');
+            if (!timer) { timer = setInterval(step, 1000); }
+        }
+    });
+
+    renderTower();
+    updateStatsDisplays();
+    resetTimerValues();
+    setInterval(createSparkEffect, 450);
+})();
+</script>
